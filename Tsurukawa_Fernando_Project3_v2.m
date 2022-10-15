@@ -2,8 +2,12 @@
 clc
 clear
 close all
-dname = uigetdir;
+% dname = uigetdir;
+% INPUT THE CORRECT DIRECTORY WITH THE CARDS HERE
+dname = 'C:\Users\fetsuruk\OneDrive - Texas Tech University\TTU\MATLAB\ImageProcessing\Project3\Photos-002';
 imds = imageDatastore(dname, 'ReadSize', 1);
+load('net_rank.mat')
+load('net_suit.mat')
 
 %% EXTENSION CONDITIONAL CHECK
 fileNames = imds.Files;
@@ -35,7 +39,7 @@ while hasdata(imds)
     h = ones(dimBlur, dimBlur) / dimBlur^2;
     imBlur = conv2(imgrey, h, 'same');
 
-    % FIXED THRESHOLD
+    % THRESHOLD
     threshold = 0.80;
 
     % SWEEPING THE IMAGE DOWNWARDS
@@ -143,20 +147,59 @@ while hasdata(imds)
         end
     end
 
-    imout = imcrop(imout,[yCrop_left xCrop_top yCrop_right - yCrop_left xCrop_bottom - xCrop_top]);
+    imout = imcrop(imwarp(im, tform),[yCrop_left xCrop_top yCrop_right - yCrop_left xCrop_bottom - xCrop_top]);
 
-    figure(1)
-    title('Methodology')
-    imshow(imgrey)
-    hold on
-    plot(yCorner1, xCorner1, 'x', 'LineWidth', 3)
-    plot(yCorner2, xCorner2, 'x', 'LineWidth', 3)
-    plot(yCorner3, xCorner3, 'x', 'LineWidth', 3)
-    plot(yCorner4, xCorner4, 'x', 'LineWidth', 3)
-    legend('Corner1', 'Corner2', 'Corner3', 'Corner4')
-    hold off
+    [resX_out, resY_out, ~] = size(imout);
 
-    figure
+    % EMPIRICAL COORDINATES THAT INDICATE ROUGHLY POSITION OF RANK AND SUIT
+    xRank_top = 51 / 1251 * resX_out;
+    yRank_left = 31 / 890 * resY_out;
+    xRank_bottom = 208 / 1251 * resX_out;
+    yRank_right = 163 / 890 * resY_out;
+    imRank = imcrop(imout,[yRank_left xRank_top yRank_right - yRank_left xRank_bottom - xRank_top]);
+
+    xSuit_top = 208 / 1251 * resX_out;
+    ySuit_left = 31 / 890 * resY_out;
+    xSuit_bottom = 337 / 1251 * resX_out;
+    ySuit_right = 163 / 890 * resY_out;
+    imSuit = imcrop(imout,[ySuit_left xSuit_top ySuit_right - ySuit_left xSuit_bottom - xSuit_top]);
+
+    rank = classify(net_rank, rgb2gray(imresize(imRank, [50 50])));
+    suit = classify(net_suit, rgb2gray(imresize(imSuit, [50 50])));
+
+    rank = char(rank);
+    suit = char(suit);
+
+    figure1 = figure(1);
     imshow(imout)
+
+    figure(2)
+    imshow(imRank)
+    title(strcat('Predicted rank: ', rank))
+
+    figure(3)
+    imshow(imSuit)
+    title(strcat('Predicted suit: ', suit))
+
     pause
 end
+
+%% CODE USED TO DISPLAY CORNERS OF THE CARDS
+%     figure(1);
+%     hold on
+%     plot(yCorner1, xCorner1, 'x', 'LineWidth', 3)
+%     plot(yCorner2, xCorner2, 'x', 'LineWidth', 3)
+%     plot(yCorner3, xCorner3, 'x', 'LineWidth', 3)
+%     plot(yCorner4, xCorner4, 'x', 'LineWidth', 3)
+%     legend('Corner1', 'Corner2', 'Corner3', 'Corner4')
+%     hold off
+
+%% CODE USED TO GENERATE TRAINING DATA
+% datacount = 1;
+%     filenameRank = strcat('rank', int2str(datacount),'.png');
+%     imwrite(imRank, filenameRank);
+%     filenameSuit = strcat('suit', int2str(datacount),'.png');
+%     imwrite(imSuit, filenameSuit);
+
+%     datacount = datacount + 1;
+%     pause
