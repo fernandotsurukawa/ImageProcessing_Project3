@@ -2,9 +2,9 @@
 clc
 clear
 close all
-% dname = uigetdir;
+dname = uigetdir;
 % INPUT THE CORRECT DIRECTORY WITH THE CARDS HERE
-dname = 'C:\Users\fetsuruk\OneDrive - Texas Tech University\TTU\MATLAB\ImageProcessing\Project3\Photos-002';
+% dname = 'C:\Users\fetsuruk\OneDrive - Texas Tech University\TTU\MATLAB\ImageProcessing\Project3\Photos-002';
 imds = imageDatastore(dname, 'ReadSize', 1);
 load('net_rank.mat')
 load('net_suit.mat')
@@ -40,7 +40,9 @@ while hasdata(imds)
     imBlur = conv2(imgrey, h, 'same');
 
     % THRESHOLD
-    threshold = 0.80;
+%     threshold = graythresh(imBlur);
+    threshold = 0.80; % 0.8 works for training images, but it's too high 
+%                                                          for test images
 
     % SWEEPING THE IMAGE DOWNWARDS
     for i = 1 : resX 
@@ -170,8 +172,17 @@ while hasdata(imds)
     rank = char(rank);
     suit = char(suit);
 
-    figure1 = figure(1);
-    imshow(imout)
+%     figure1 = figure(1);
+%     imshow(im)
+    figure(1)
+    imshow(im)
+    hold on
+    plot(yCorner1, xCorner1, 'x', 'LineWidth', 3)
+    plot(yCorner2, xCorner2, 'x', 'LineWidth', 3)
+    plot(yCorner3, xCorner3, 'x', 'LineWidth', 3)
+    plot(yCorner4, xCorner4, 'x', 'LineWidth', 3)
+    legend('Corner1', 'Corner2', 'Corner3', 'Corner4')
+    hold off
 
     figure(2)
     imshow(imRank)
@@ -185,14 +196,7 @@ while hasdata(imds)
 end
 
 %% CODE USED TO DISPLAY CORNERS OF THE CARDS
-%     figure(1);
-%     hold on
-%     plot(yCorner1, xCorner1, 'x', 'LineWidth', 3)
-%     plot(yCorner2, xCorner2, 'x', 'LineWidth', 3)
-%     plot(yCorner3, xCorner3, 'x', 'LineWidth', 3)
-%     plot(yCorner4, xCorner4, 'x', 'LineWidth', 3)
-%     legend('Corner1', 'Corner2', 'Corner3', 'Corner4')
-%     hold off
+
 
 %% CODE USED TO GENERATE TRAINING DATA
 % datacount = 1;
